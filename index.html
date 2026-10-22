@@ -3783,46 +3783,62 @@ function renderHeroPhoto(){
 }
 
 /* =========================================================================
-   INIT
+   INIT — fault-tolerant boot
+   A single optional widget must never prevent the rest of the page rendering.
    ========================================================================= */
-function init(){
-  restoreState();
-  renderHeroPhoto();
-  populateQuickPlan();
-  $("#qpGenerate").addEventListener("click", quickPlanGenerate);
-  populateCompare();
-  $("#compareBtn").addEventListener("click", renderCompareResult);
-  $("#filterBudget").addEventListener("change",(e)=>{ state.budgetFilter=e.target.value; renderDestGrid(); });
-  $("#filterDuration").addEventListener("change",(e)=>{ state.durationFilter=e.target.value; renderDestGrid(); });
-  renderRouteBuilderBar();
-  renderSystemStatus();
-  renderHomeRegionStrip();
-  renderHomeExpMiniRow();
-  renderTrendingStrip();
-  renderSeasonal();
-  renderHomeFeatured();
-  renderPickedForYou();
-  renderCollectionsGrid();
-  renderStaysGrid();
-  renderWeekendGrid();
-  renderWhyGrid();
-  renderRegionChips();
-  renderMapCanvas();
-  renderRegionDetail();
-  renderDestGrid();
-  renderGallery();
-  renderExpGrid();
-  renderTechGrid();
-  renderTVSE();
-  renderSustainPoints();
-  renderStep1();renderStep2();renderStep3();renderStep4();renderStep5();renderStep6();
-  renderStepper();
-  goToStep(1);
-  renderDashboard();
-  const openedSharedTrip = tryRestoreTripFromURL();
-  if(!openedSharedTrip) setView("home");
+function runInitStep(label, fn){
+  try { fn(); return true; }
+  catch(error){
+    console.error("[YatraAI init] " + label + " failed:", error);
+    window.__YATRAAI_INIT_ERRORS = window.__YATRAAI_INIT_ERRORS || [];
+    window.__YATRAAI_INIT_ERRORS.push({label, message:error?.message || String(error)});
+    return false;
+  }
 }
-init();
+function init(){
+  // Restore saved preferences first, but continue with defaults if storage is unavailable.
+  runInitStep("restore saved state", restoreState);
+  runInitStep("hero image", renderHeroPhoto);
+  runInitStep("quick planner options", populateQuickPlan);
+  runInitStep("quick planner button", ()=>$("#qpGenerate")?.addEventListener("click", quickPlanGenerate));
+  runInitStep("comparison options", populateCompare);
+  runInitStep("comparison button", ()=>$("#compareBtn")?.addEventListener("click", renderCompareResult));
+  runInitStep("budget filter", ()=>$("#filterBudget")?.addEventListener("change",(e)=>{ state.budgetFilter=e.target.value; renderDestGrid(); }));
+  runInitStep("duration filter", ()=>$("#filterDuration")?.addEventListener("change",(e)=>{ state.durationFilter=e.target.value; renderDestGrid(); }));
+  [
+    ["route builder",renderRouteBuilderBar],["system status",renderSystemStatus],
+    ["home region cards",renderHomeRegionStrip],["experience shortcuts",renderHomeExpMiniRow],
+    ["trending destinations",renderTrendingStrip],["seasonal picks",renderSeasonal],
+    ["featured destinations",renderHomeFeatured],["personalised picks",renderPickedForYou],
+    ["collections",renderCollectionsGrid],["stay types",renderStaysGrid],
+    ["weekend ideas",renderWeekendGrid],["why YatraAI",renderWhyGrid],
+    ["region filters",renderRegionChips],["interactive map",renderMapCanvas],
+    ["region detail",renderRegionDetail],["destination explorer",renderDestGrid],
+    ["photo gallery",renderGallery],["experience explorer",renderExpGrid],
+    ["e-tourism technology",renderTechGrid],["traditional vs e-tourism",renderTVSE],
+    ["sustainability content",renderSustainPoints],
+    ["planner step 1",renderStep1],["planner step 2",renderStep2],
+    ["planner step 3",renderStep3],["planner step 4",renderStep4],
+    ["planner step 5",renderStep5],["planner step 6",renderStep6],
+    ["planner stepper",renderStepper],["dashboard",renderDashboard]
+  ].forEach(([label,fn])=>runInitStep(label,fn));
+  runInitStep("open first planner step",()=>goToStep(1));
+  const openedSharedTrip = runInitStep("restore shared trip",tryRestoreTripFromURL);
+  if(!openedSharedTrip) runInitStep("show homepage",()=>setView("home"));
+
+  // Report recoverable rendering problems without leaving the visitor with a blank page.
+  const errors = window.__YATRAAI_INIT_ERRORS || [];
+  if(errors.length){
+    const report = document.createElement("div");
+    report.setAttribute("role","status");
+    report.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:720px;margin:auto;padding:12px 16px;background:#102544;color:#fff;border-left:4px solid #E8862E;border-radius:10px;box-shadow:0 8px 28px #0003;font:13px/1.45 Inter,sans-serif";
+    report.textContent = "YatraAI loaded in recovery mode. Some optional sections could not render; details are recorded in the browser console.";
+    document.body.appendChild(report);
+    console.warn("[YatraAI] Recoverable startup errors:", errors);
+  }
+}
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded",init,{once:true});
+else init();
 </script>
 
 </body>
