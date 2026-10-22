@@ -1324,9 +1324,11 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
    means editing API_CONFIG only — no UI code needs to change, since every
    caller already branches on `available`.
    ========================================================================= */
-// Same-origin API routes are handled by Cloudflare Pages Functions.
-// Keeping the API on the same origin avoids cross-host routing and CORS setup.
-const API_BASE = "/api";
+// Cloudflare Pages uses same-origin Functions at /api/*.
+// Keep the existing GitHub Pages link working during the migration window.
+const IS_GITHUB_PAGES = location.hostname.endsWith("github.io");
+const LEGACY_BACKEND = "https://bharatyatrai.netlify.app/.netlify/functions";
+const API_BASE = IS_GITHUB_PAGES ? LEGACY_BACKEND : "/api";
 const API_CONFIG = {
   weatherEndpoint: API_BASE + "/weather",
   placesEndpoint: API_BASE + "/places",
