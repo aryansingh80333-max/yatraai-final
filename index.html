@@ -1324,11 +1324,10 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
    means editing API_CONFIG only — no UI code needs to change, since every
    caller already branches on `available`.
    ========================================================================= */
-const IS_GITHUB_PAGES = location.hostname.endsWith("github.io");
+const IS_STATIC_HOST = !location.hostname.endsWith("netlify.app");
 const API_CONFIG = {
-  // GitHub Pages serves the static demo only. Keep the interface graceful there;
-  // Netlify endpoints remain enabled on the Netlify deployment.
-  weatherEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/weather",
+  // Static hosts serve the interface only; Netlify hosts the live serverless APIs.
+  weatherEndpoint: IS_STATIC_HOST ? "" : "/.netlify/functions/weather",
   placesEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/places",
   routesEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/routes",
   flightsEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/flights",
