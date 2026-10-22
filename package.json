@@ -1,0 +1,8 @@
+{
+  "name": "yatraai-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless integration layer for YatraAI",
+  "engines": { "node": ">=18" },
+  "dependencies": {}
+}
