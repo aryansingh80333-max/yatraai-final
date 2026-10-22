@@ -669,6 +669,22 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
   .why-panel{grid-template-columns:1fr;}
   .detail-hero{padding:24px;}
 }
+
+/* Live API diagnostics and provider-backed place results */
+.api-test-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.api-test-card{background:var(--white);border:var(--hairline);border-radius:16px;padding:20px;min-width:0;box-shadow:var(--shadow-soft);}
+.api-test-card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.api-test-card h3{font-family:'Fraunces',serif;font-size:19px;color:var(--navy-deep);}
+.api-test-card p{font-size:13px;line-height:1.55;color:var(--ink-soft);margin:10px 0 14px;}
+.api-test-result{font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:10px;padding:11px;background:var(--cream);color:var(--ink-soft);max-height:220px;overflow:auto;}
+.api-test-result.ok{background:var(--sage-soft);color:var(--sage);}
+.api-test-result.bad{background:#fff0ed;color:#9d3528;}
+.api-test-result.running{background:var(--cream-deep);color:var(--navy-deep);}
+.live-place-item{border-top:1px solid rgba(0,0,0,.08);padding:11px 0;}
+.live-place-item strong{display:block;color:var(--navy-deep);font-size:13px;}
+.live-place-item span{display:block;color:var(--ink-soft);font-size:12px;margin-top:4px;line-height:1.45;}
+.live-route-results{grid-column:1/-1;background:var(--cream);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--ink-soft);line-height:1.6;}
+@media(max-width:650px){.api-test-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -982,7 +998,7 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
         <div class="planner-head">
           <span class="eyebrow-tag">AI Trip Planner</span>
           <h1>Let's design your journey</h1>
-          <p>Answer a few quick questions and YatraAI will simulate a personalised Indian itinerary — built from your preferences.</p>
+          <p>Answer a few quick questions. YatraAI can use the configured live AI service to interpret your preferences, then build a day-by-day plan from its curated destination data.</p>
           <p id="stepOfSeven" style="font-family:var(--mono);font-size:12px;color:var(--saffron);margin-top:14px;"></p>
         </div>
         <div class="planner-body">
@@ -1028,7 +1044,7 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
             </div>
             <div class="step-panel" data-step="7">
               <h2>Ready to generate your journey?</h2>
-              <p class="step-help">YatraAI will simulate an AI itinerary based on everything you've told us.</p>
+              <p class="step-help">YatraAI will interpret your preferences using the configured AI service when available, then assemble a day-by-day plan from curated destination data.</p>
               <div id="reviewSummary" style="margin-top:22px;display:flex;flex-direction:column;gap:8px;font-size:14px;color:rgba(255,255,255,0.75);"></div>
               <button class="btn btn-saffron" id="generateBtn" style="margin-top:30px;font-size:16px;padding:18px 30px;">✨ Generate My AI Itinerary</button>
             </div>
@@ -1079,6 +1095,26 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
       <button class="btn btn-ghost btn-sm" onclick="renderSystemStatus()">Refresh</button>
     </div>
     <div class="status-grid" id="systemStatusGrid"></div>
+  </section>
+
+  <section class="section container">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;">
+      <div>
+        <span class="eyebrow-tag">Live integration checks</span>
+        <h2 style="margin-top:14px;">Test YatraAI API connections</h2>
+        <p>Run real requests through this site's Netlify Functions. A successful function response does not guarantee live provider data; credentials, provider quotas and sandbox limits still apply.</p>
+      </div>
+      <button class="btn btn-saffron btn-sm" onclick="runAllApiTests()">Test all endpoints</button>
+    </div>
+    <div class="api-test-grid" id="apiTestGrid">
+      <article class="api-test-card"><div class="api-test-card-head"><h3>Backend status</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('status')">Test</button></div><p>Checks whether the status function responds and reports configured credentials.</p><div id="api-result-status" class="api-test-result">Not tested yet.</div></article>
+      <article class="api-test-card"><div class="api-test-card-head"><h3>Weather</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('weather')">Test</button></div><p>Requests current weather for Delhi.</p><div id="api-result-weather" class="api-test-result">Not tested yet.</div></article>
+      <article class="api-test-card"><div class="api-test-card-head"><h3>Places</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('places')">Test</button></div><p>Searches for tourist attractions in Delhi.</p><div id="api-result-places" class="api-test-result">Not tested yet.</div></article>
+      <article class="api-test-card"><div class="api-test-card-head"><h3>Road routes</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('routes')">Test</button></div><p>Requests road distance and duration from Delhi to Agra.</p><div id="api-result-routes" class="api-test-result">Not tested yet.</div></article>
+      <article class="api-test-card"><div class="api-test-card-head"><h3>Flights</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('flights')">Test</button></div><p>Checks the Amadeus test environment for Delhi–Mumbai flight offers. Results are not bookable live inventory.</p><div id="api-result-flights" class="api-test-result">Not tested yet.</div></article>
+      <article class="api-test-card"><div class="api-test-card-head"><h3>Hotels</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('hotels')">Test</button></div><p>Checks the Amadeus test environment for Delhi hotel offers. Results may be empty or synthetic test data.</p><div id="api-result-hotels" class="api-test-result">Not tested yet.</div></article>
+      <article class="api-test-card"><div class="api-test-card-head"><h3>AI planning</h3><button class="btn btn-ghost btn-sm" onclick="runApiTest('llm')">Test</button></div><p>Sends a sample trip request to the configured AI provider.</p><div id="api-result-llm" class="api-test-result">Not tested yet.</div></article>
+    </div>
   </section>
 
   <section class="section container">
@@ -2289,6 +2325,7 @@ let state = {
    ========================================================================= */
 function $(sel,ctx){return (ctx||document).querySelector(sel);}
 function $all(sel,ctx){return Array.from((ctx||document).querySelectorAll(sel));}
+function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[ch]));}
 function labelFrom(list,key){const f=list.find(x=>x.key===key);return f?f.label.replace(/^[^\w]*\s/,''):(key||"Not set");}
 function joinNice(arr){
   if(!arr.length) return "a flexible mix of experiences";
@@ -2553,13 +2590,30 @@ function renderRouteBuilderBar(){
       <div class="rb-actions">
         <button class="rb-btn" onclick="optimiseRouteOrder()">Optimise Order</button>
         <button class="rb-btn" onclick="clearRouteBuilder()">Clear</button>
+        <button class="rb-btn" onclick="checkLiveRouteLegs()" ${state.routeBuilder.length<2?'disabled':''}>Check live road distances</button>
         <button class="rb-btn primary" onclick="buildRouteIntoPlanner()">Build Itinerary From This Route →</button>
       </div>
     </div>
     <div class="rb-chips">${chips}</div>
+    <div id="liveRouteDistanceResults" class="live-route-results" style="display:none;"></div>
   `;
 }
 
+async function checkLiveRouteLegs(){
+  const mount=$("#liveRouteDistanceResults");
+  if(!mount)return;
+  if(state.routeBuilder.length<2){showToast("Add at least two stops first");return;}
+  mount.style.display="block";mount.textContent="Checking live road distances…";
+  const legs=[];
+  for(let i=1;i<state.routeBuilder.length;i++){
+    const from=state.routeBuilder[i-1],to=state.routeBuilder[i];
+    const result=await RouteService.getDistance(from,to,"driving");
+    legs.push({from:DESTINATIONS[from].name,to:DESTINATIONS[to].name,result});
+  }
+  mount.innerHTML=legs.map(leg=>leg.result.available
+    ? `<div><strong>${escapeHTML(leg.from)} → ${escapeHTML(leg.to)}</strong>: ${escapeHTML(leg.result.distanceKm)} km · about ${escapeHTML(leg.result.durationMinutes)} min (live road estimate).</div>`
+    : `<div><strong>${escapeHTML(leg.from)} → ${escapeHTML(leg.to)}</strong>: ${escapeHTML(leg.result.reason||"Live route data unavailable; current itinerary uses approximate map distance.")}</div>`).join("");
+}
 async function renderSystemStatus(){
   const mount = document.querySelector("#systemStatusGrid");
   if(!mount) return;
@@ -2577,6 +2631,64 @@ async function renderSystemStatus(){
       <div class="sc-env">${s.requiredEnv.join(', ')}</div>
     </div>
   `).join("");
+}
+function localDateOffset(days){
+  const d=new Date(); d.setDate(d.getDate()+days);
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+const API_TEST_LABELS={status:"Backend status",weather:"Weather",places:"Places",routes:"Road routes",flights:"Flights",hotels:"Hotels",llm:"AI planning"};
+async function runApiTest(name){
+  const output=$("#api-result-"+name);
+  if(!output) return;
+  output.className="api-test-result running";
+  output.textContent="Request in progress…";
+  let result;
+  try{
+    if(name==="status") result=await checkServiceStatus();
+    else if(name==="weather") result=await WeatherService.get("delhi");
+    else if(name==="places") result=await PlacesService.search("tourist attractions in Delhi","delhi");
+    else if(name==="routes") result=await RouteService.getDistance("delhi","agra","driving");
+    else if(name==="flights") result=await FlightsService.search({origin:"DEL",destination:"BOM",date:localDateOffset(30),adults:"1"});
+    else if(name==="hotels") result=await HotelsService.search({cityCode:"DEL",checkIn:localDateOffset(30),checkOut:localDateOffset(32),adults:"1"});
+    else if(name==="llm") result=await LLMService.plan("Plan a 3-day heritage and local-food trip in Jaipur for two adults with a moderate budget. Use only destinations in the supplied catalog.");
+    else result={available:false,reason:"Unknown API test."};
+  }catch(e){result={available:false,reason:e?.message||"Unexpected frontend error."};}
+  const ok=!!result?.available;
+  output.className="api-test-result "+(ok?"ok":"bad");
+  let summary=ok?"SUCCESS — function returned available=true.\n":"NOT AVAILABLE — request did not return available=true.\n";
+  if(name==="status"&&result?.services){
+    const missing=Object.entries(result.services).filter(([,v])=>!v.configured).map(([k])=>k);
+    summary+=missing.length?"Missing provider credentials: "+missing.join(", ")+".\n":"All provider credentials are present (provider calls still need testing).\n";
+  }
+  if(result?.reason) summary+="Reason: "+result.reason+"\n";
+  if(result?.source) summary+="Source: "+result.source+(result.provider?" — "+result.provider:"")+"\n";
+  if(name==="weather"&&ok) summary+=`${result.place||"Weather"}: ${result.tempC}°C, ${result.condition||"condition unavailable"}.\n`;
+  if(name==="places"&&ok) summary+=`Places returned: ${(result.results||[]).length}.\n`;
+  if(name==="routes"&&ok) summary+=`Distance: ${result.distanceKm} km; duration: ${result.durationMinutes} minutes.\n`;
+  if(name==="flights"&&ok) summary+=`Offers returned: ${(result.offers||[]).length}. Test-environment data only.\n`;
+  if(name==="hotels"&&ok) summary+=`Offers returned: ${(result.offers||[]).length}. Test-environment data only.\n`;
+  if(name==="llm"&&ok) summary+=`AI provider: ${result.provider||"configured provider"}.\n`;
+  output.textContent=summary+"\nResponse preview:\n"+JSON.stringify(result,null,2);
+  return result;
+}
+async function runAllApiTests(){
+  const names=["status","weather","places","routes","flights","hotels","llm"];
+  for(const name of names) await runApiTest(name);
+}
+async function renderLivePlaces(slug){
+  const mount=$("#placesLiveCard"),d=DESTINATIONS[slug];
+  if(!mount||!d)return;
+  mount.innerHTML="<h3>Live nearby places</h3><p>Searching the places provider…</p>";
+  const result=await PlacesService.search(`tourist attractions in ${d.name}`,slug);
+  if(state.detailSlug!==slug)return;
+  if(!result.available){
+    mount.innerHTML=`<h3>Live nearby places</h3><p class="wc-reason">${escapeHTML(result.reason||"Live places are unavailable.")}</p><button class="btn btn-ghost btn-sm" onclick="renderLivePlaces('${slug}')">Retry</button>`;
+    return;
+  }
+  const items=result.results||[];
+  mount.innerHTML=`<h3>Live nearby places</h3><p style="font-size:12px;color:var(--ink-soft);margin:6px 0 10px;">${items.length} result(s) from ${escapeHTML(result.provider||"places provider")}.</p>`+
+    (items.length?items.map(p=>`<div class="live-place-item"><strong>${escapeHTML(p.name||"Unnamed place")}${p.rating?` · ★ ${escapeHTML(p.rating)}`:""}</strong><span>${escapeHTML(p.address||"Address not provided")}</span>${p.userRatingsTotal?`<span>${escapeHTML(p.userRatingsTotal)} user ratings</span>`:""}</div>`).join(""):`<p>No places returned for this search.</p>`);
 }
 function toggleFavorite(slug,evt){
   evt.stopPropagation();
@@ -2745,6 +2857,7 @@ function openDetail(slug){
   state.detailSlug = slug;
   renderDetail(slug);
   renderWeatherCard(slug);
+  renderLivePlaces(slug);
   setView("detail");
 }
 function renderDetail(slug){
@@ -2776,6 +2889,7 @@ function renderDetail(slug){
       </div>
       <div>
         <div id="weatherCard"></div>
+        <div id="placesLiveCard" class="detail-block live-places-card"><h3>Live nearby places</h3><p>Searching live places data…</p></div>
         <div class="info-card">
           <div class="info-row"><span>Best time to visit</span><b>${d.bestSeason}</b></div>
           <div class="info-row"><span>Suggested duration</span><b>${d.duration}</b></div>
@@ -2804,7 +2918,7 @@ async function renderWeatherCard(slug){
     </div>`;
   } else {
     mount.innerHTML = `<div class="weather-card unavailable">
-      <div class="wc-badge">⚪ LIVE WEATHER: NOT CONNECTED</div>
+      <div class="wc-badge">⚪ LIVE WEATHER UNAVAILABLE</div>
       <p class="wc-reason">${result.reason}</p>
       <div class="wc-divider"></div>
       <div class="wc-badge typical">📅 TYPICAL SEASONAL PATTERN</div>
@@ -3200,7 +3314,7 @@ function seasonNote(season){
    GENERATE / RESULTS RENDER
    ========================================================================= */
 $("#generateBtn").addEventListener("click",runGeneration);
-function runGeneration(){
+async function runGeneration(){
   $("#plannerForm").classList.add("hidden");
   $("#plannerResults").classList.add("hidden");
   const loading = $("#plannerLoading");
@@ -3209,16 +3323,33 @@ function runGeneration(){
   const bar = $("#loadingBar");
   lines.forEach(l=>l.classList.remove("active"));
   bar.style.width="0%";
+  const p=state.planner;
+  const chosenDest=p.destination&&p.destination!=="undecided"?DESTINATIONS[p.destination]?.name:"not decided yet";
+  const requestText=`Help plan a trip using these traveller preferences: destination=${chosenDest}; duration=${p.duration||"not specified"}; season=${p.season||"not specified"}; budget=${p.budget||"not specified"}; interests=${(p.styles||[]).join(", ")||"not specified"}; group=${p.group||"not specified"}; pace=${p.pace||"not specified"}. Respect any destination already selected by the traveller. Recommend only a destination from the provided catalog.`;
+  let livePlanPromise=LLMService.plan(requestText).catch(e=>({available:false,reason:e?.message||"Live AI request failed."}));
   let step=0;
-  const seq = setInterval(()=>{
+  const seq = setInterval(async()=>{
     lines.forEach(l=>l.classList.remove("active"));
     if(lines[step]) lines[step].classList.add("active");
-    bar.style.width = ((step+1)/lines.length*100)+"%";
+    bar.style.width = (Math.min(step+1,lines.length)/lines.length*100)+"%";
     step++;
     if(step>lines.length){
       clearInterval(seq);
+      let livePlan=await livePlanPromise;
+      if(livePlan?.available){
+        if(!state.routeBuilder.length && (!p.destination||p.destination==="undecided") && livePlan.destinationKey && DESTINATIONS[livePlan.destinationKey]) p.destination=livePlan.destinationKey;
+        if(!p.duration&&livePlan.duration) p.duration=livePlan.duration;
+        if(!p.budget&&livePlan.budget) p.budget=livePlan.budget;
+        if((!p.styles||!p.styles.length)&&Array.isArray(livePlan.styles)) p.styles=livePlan.styles.filter(x=>STEP4_LIST.some(item=>item.key===x));
+        if(!p.group&&livePlan.group) p.group=livePlan.group;
+        if(!p.pace&&livePlan.pace) p.pace=livePlan.pace;
+        persistState();
+      }
       loading.classList.add("hidden");
       state.result = buildItinerary();
+      state.result.aiMode=livePlan?.available?"live":"fallback";
+      state.result.aiProvider=livePlan?.provider||null;
+      state.result.aiExplanation=livePlan?.available?(livePlan.explanation||""): (livePlan?.reason||"The AI service is unavailable or not configured; the itinerary was assembled from curated destination data and local planning rules.");
       renderResults(state.result);
       $("#plannerResults").classList.remove("hidden");
     }
@@ -3275,9 +3406,10 @@ function renderResults(r){
 
   $("#plannerResults").innerHTML = `
     <div class="results-header">
-      <span class="eyebrow-tag">Your AI Itinerary</span>
-      <h2>Your ${r.totalDays}-Day ${r.destName} Journey ${r.matchPct!==null?`<span style="font-family:var(--mono);font-size:16px;color:#FFC48A;">· ${r.matchPct}% match</span>`:''}</h2>
+      <span class="eyebrow-tag">${r.aiMode==="live"?`AI-assisted itinerary${r.aiProvider?" · "+escapeHTML(r.aiProvider):""}`:"Personalised itinerary · curated data"}</span>
+      <h2>Your ${r.totalDays}-Day ${r.destName} Journey ${r.matchPct!==null?`<span style="font-family:var(--mono);font-size:16px;color:#FFC48A;">· ${r.matchPct}% preference match</span>`:''}</h2>
       <div class="profile-chips">${r.profileChips.map(c=>`<span>${c}</span>`).join("")}</div>
+      <p style="margin-top:12px;font-size:12.5px;line-height:1.55;color:var(--ink-soft);">${r.aiMode==="live"?`Live AI helped interpret your preferences. The day-by-day schedule is assembled from YatraAI's curated destination data; it is not a booking or live availability confirmation.${r.aiExplanation?" AI note: "+escapeHTML(r.aiExplanation):""}`:`No live AI result was used for this itinerary. It was assembled from YatraAI's curated destination data and local planning rules. ${r.aiExplanation?escapeHTML(r.aiExplanation):"Configure the AI provider in Netlify to enable AI-assisted preference interpretation."}`}</p>
       <div class="result-actions">
         <button class="act-modify" onclick="modifyTrip()">Modify Trip</button>
         <button class="act-save" onclick="saveItinerary()">Save Itinerary</button>
