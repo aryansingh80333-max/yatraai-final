@@ -1324,14 +1324,17 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
    means editing API_CONFIG only — no UI code needs to change, since every
    caller already branches on `available`.
    ========================================================================= */
+const IS_GITHUB_PAGES = location.hostname.endsWith("github.io");
 const API_CONFIG = {
-  weatherEndpoint: "/.netlify/functions/weather",
-  placesEndpoint: "/.netlify/functions/places",
-  routesEndpoint: "/.netlify/functions/routes",
-  flightsEndpoint: "/.netlify/functions/flights",
-  hotelsEndpoint: "/.netlify/functions/hotels",
-  llmEndpoint: "/.netlify/functions/llm-plan",
-  statusEndpoint: "/.netlify/functions/status"
+  // GitHub Pages serves the static demo only. Keep the interface graceful there;
+  // Netlify endpoints remain enabled on the Netlify deployment.
+  weatherEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/weather",
+  placesEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/places",
+  routesEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/routes",
+  flightsEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/flights",
+  hotelsEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/hotels",
+  llmEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/llm-plan",
+  statusEndpoint: IS_GITHUB_PAGES ? "" : "/.netlify/functions/status"
 };
 async function callLiveService(endpoint, params, unavailableReason){
   if(!endpoint) return {available:false, reason:unavailableReason};
