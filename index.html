@@ -1324,12 +1324,9 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
    means editing API_CONFIG only — no UI code needs to change, since every
    caller already branches on `available`.
    ========================================================================= */
-// Backend routing: GitHub Pages hosts the frontend only. It must call the
-// separately deployed Netlify Functions backend; blank endpoints silently
-// disabled every live integration on the GitHub Pages version.
-const IS_GITHUB_PAGES = location.hostname.endsWith("github.io");
-const NETLIFY_BACKEND = "https://bharatyatrai.netlify.app/.netlify/functions";
-const API_BASE = IS_GITHUB_PAGES ? NETLIFY_BACKEND : "/.netlify/functions";
+// Same-origin API routes are handled by Cloudflare Pages Functions.
+// Keeping the API on the same origin avoids cross-host routing and CORS setup.
+const API_BASE = "/api";
 const API_CONFIG = {
   weatherEndpoint: API_BASE + "/weather",
   placesEndpoint: API_BASE + "/places",
