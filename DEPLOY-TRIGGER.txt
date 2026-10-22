@@ -1,0 +1,3 @@
+YatraAI redeployment trigger.
+
+This file was added to create a fresh commit on main and prompt Netlify to schedule a new deployment. It does not change application behavior.
