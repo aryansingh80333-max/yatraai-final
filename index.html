@@ -1324,6 +1324,10 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,0.7);padding:64px 0 30
    means editing API_CONFIG only — no UI code needs to change, since every
    caller already branches on `available`.
    ========================================================================= */
+// Detect the deployment target before building API_CONFIG. An undeclared
+// IS_GITHUB_PAGES reference throws a ReferenceError and stops this entire
+// inline script, leaving JavaScript-rendered sections empty.
+const IS_GITHUB_PAGES = location.hostname.endsWith("github.io");
 const IS_STATIC_HOST = !location.hostname.endsWith("netlify.app");
 const API_CONFIG = {
   // Static hosts serve the interface only; Netlify hosts the live serverless APIs.
